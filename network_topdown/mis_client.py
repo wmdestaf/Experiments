@@ -103,8 +103,9 @@ def game_loop():
         if iD == myID:
             canv.xview_moveto(0)
             canv.yview_moveto(0)
-            canv.xview_scroll((300-250) + pos[0],tk.UNITS)
-            canv.yview_scroll((300-250) + pos[1],tk.UNITS)
+
+            canv.xview_scroll(r + pos[0],tk.UNITS)
+            canv.yview_scroll(r + pos[1],tk.UNITS)
             
             head_x = floor(pos[0] + r/3 * cos(radians(theta)))
             head_y = floor(pos[1] + r/3 * sin(radians(theta)))
@@ -145,9 +146,8 @@ def motion(event):
 
 def click_fire(*args):
     global theta, clientSocket, last_fire_time #hitscan
-    print(time.time(), last_fire_time, time.time() - last_fire_time)
     if time.time() - last_fire_time < 2.5:
-        print("Can't fire yet!")
+        #print("Can't fire yet!")
         return
     last_fire_time = time.time()
     clientSocket.sendall( MISSILE.to_bytes(4,'little',signed=True) + theta.to_bytes(4,'little',signed=True) )
@@ -174,7 +174,6 @@ if __name__ == "__main__":
     clientSocket = acquire_connection()
 
     #main window
-    s_width,s_height = 500,500
     root = tk.Tk()
     ttk.Style(root).theme_use('alt')
     root.title("Shooter")
@@ -187,12 +186,13 @@ if __name__ == "__main__":
     root.bind('<Button-1>', click_fire)
     
     #canvas
-    canv = tk.Canvas(root, bg='green', height=500, width=500, scrollregion=(-300,-300,300,300))
+    canv = tk.Canvas(root, bg='green', height=s_height, width=s_width, 
+                     scrollregion=(-g_width >> 1,-g_height >> 1,g_width >> 1,g_height >> 1))
     canv["xscrollincrement"] = 1
     canv["yscrollincrement"] = 1
     #scroll the canvas to fit around our position '0,0' as the center
-    canv.xview_scroll(-250, tk.UNITS)
-    canv.yview_scroll(-250, tk.UNITS)
+    canv.xview_scroll(-s_width  >> 1, tk.UNITS)
+    canv.yview_scroll(-s_height >> 1, tk.UNITS)
     canv.grid()
 
     #MENU
@@ -214,15 +214,15 @@ if __name__ == "__main__":
     theta = 0
     sensitivity = 1
     last_fire_time = 0
-    
-    #existent images
-    canv.create_rectangle(-100,-100,-90,-90)
-    canv.create_rectangle(90,100,100,90)
-    
-    canv.create_polygon([-250,-250,-250,250,250,250,250,-250],fill='',outline='black')
+
+    obj_map = obj_map1
+    for obj in obj_map:
+        obj.assign_visual_mapping(canv)
+        for obj_ in obj.halo:
+            obj_.assign_visual_mapping(canv)
     
     #player image
-    r = 50
+    r = default_rad
     colors = ['black','cyan','red','orange']
     imgs = {n: canv.create_oval(-floor(r/2) - 1000, - floor(r/2), +floor(r/2) - 1000, +floor(r/2), outline=colors[n]) for n in range(4)}
     myView = canv.create_oval(-floor(r/8), -floor(r/8), floor(r/8), floor(r/8));

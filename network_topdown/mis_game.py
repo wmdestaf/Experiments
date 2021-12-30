@@ -26,6 +26,32 @@ def clamp_and_bound(pos, dx, dy, bounds):
         
     return (dx, dy)
 
+def detect_and_avoid_collisions(pos, dx, dy, boxes):
+    for box in boxes:
+        #if moving in the x direction causes a collision on the left and right...
+        tent_x = pos[0] + dx
+        tent_y = pos[1]
+        if collide := box.halo_collide(tent_x,tent_y):
+            if collide[0] or collide[2]:
+                dx = 0
+
+        #if moving in the y direction causes a collision on the top or bottom...
+        tent_x = pos[0]
+        tent_y = pos[1] + dy
+        if collide := box.halo_collide(tent_x,tent_y):
+            if collide[1] or collide[3]:
+                dy = 0
+                
+        #if moving diagonally causes a collision on the corner...
+        tent_x = pos[0] + dx
+        tent_y = pos[1] + dy
+        if collide := box.halo_collide(tent_x,tent_y):
+            if any(collide[i] and collide[(i+1)%4] for i in range(4)):
+                dx = 0
+                dy = 0
+            
+    return dx, dy
+ 
 def mloop(ref, me, others, mypos, myID):
 
     me.send(myID.to_bytes(4,'little',signed=True))
@@ -51,7 +77,8 @@ def mloop(ref, me, others, mypos, myID):
             diag = 1 if not (dx and dy) else INV2
             dx_p = floor(xspeed * dx * diag)
             dy_p = floor(yspeed * dy * diag)
-            dx_p, dy_p = clamp_and_bound(mypos,dx_p,dy_p,[-250,250,-250,250])
+            dx_p, dy_p = detect_and_avoid_collisions(mypos,dx_p,dy_p,ref.obj_map)
+            #dx_p, dy_p = clamp_and_bound(mypos,dx_p,dy_p,[-250,250,-250,250])
              
             #move
             mypos[0] += dx_p
@@ -75,6 +102,7 @@ def mloop(ref, me, others, mypos, myID):
 
 class MIS_GAME:
     def __init__(self, socks):
+        self.obj_map = obj_map1
         self.socks = socks
         self.poss = [[0,0] for sock in socks]
         self.threads = [Thread(target=mloop,args=(self, sock, list(filter(lambda x: x != sock, socks)),self.poss[idx],idx)) 

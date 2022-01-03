@@ -1,3 +1,5 @@
+import time
+
 MOVEMENT = 0x0000
 MISSILE  = 0x0001
 
@@ -27,7 +29,18 @@ class Box:
             
         if halo:
             self.halo = self.create_halo(default_rad)
-            
+         
+    def edge(self,x,y,err=0.0):
+        bitmap = [False] * 4
+        x1, y1, x3, y3 = self.pts[0],self.pts[1],self.pts[4],self.pts[3]
+        
+        bitmap[0] = abs(x - x1) <= err and y >= y1 and y <= y3 #left
+        bitmap[1] = abs(y - y1) <= err and x >= x1 and x <= x3 #top
+        bitmap[2] = abs(x - x3) <= err and y >= y1 and y <= y3 #right
+        bitmap[3] = abs(y - y3) <= err and x >= x1 and x <= x3 #bottom
+        
+        return bitmap if any(bitmap) else None
+         
     def halo_collide(self,x,y):
         collide_map = [False] * 4
         for idx, h in enumerate(self.halo):
@@ -38,9 +51,9 @@ class Box:
             return collide_map #[left,top,right,down]
         return None
             
-    def __in__(self,x,y):
+    def __in__(self,x,y,err=0.0):
         x1, y1, x3, y3 = self.pts[0],self.pts[1],self.pts[4],self.pts[3]
-        return x >= x1 and x <= x3 and y >= y1 and y <= y3
+        return x >= x1 - err and x <= x3 + err and y >= y1 - err and y <= y3 + err
             
     def create_halo(self, r):
         x1, y1, x3, y3 = self.pts[0],self.pts[1],self.pts[4],self.pts[3]

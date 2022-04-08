@@ -65,12 +65,6 @@ def game_loop():
     
     print(pos,dx_p,dy_p)
     #actually pan the camera
-    '''
-    if dx:
-        canv.xview_scroll(dx, tk.UNITS)
-    if dy:
-        canv.yview_scroll(dy, tk.UNITS)
-    '''
     canv.update()
     canv.after(25, game_loop)
 

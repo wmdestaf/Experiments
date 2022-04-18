@@ -72,6 +72,21 @@ def pancake(arr,observer=observe_callbk,duration=5):
     
     update_scan()
  
+def selection(a,observer=observe_callbk,duration=5):
+    for i in range(len(a)):
+        min_j = -1
+        for j in range(i, len(a)):
+            observer(i,j,duration)
+            if a[j] < a[min_j]:
+                min_j = j
+        
+        #swap!
+        tmp = a[min_j]
+        a[min_j] = a[i]
+        a[i] = tmp
+        
+    update_scan()
+ 
 def insertion(a,observer=observe_callbk,duration=5):
     for j in range(1,len(a)):
         key = a[j]
@@ -196,6 +211,7 @@ if __name__ == "__main__":
     configmenu.add_command(accelerator='S',label='Shuffle',command=lambda: shuffle(array_num,duration=5))
     configmenu.add_separator()
     configmenu.add_command(accelerator='I',label='Insertion',command=lambda: insertion(array_num,duration=5))
+    configmenu.add_command(accelerator='L',label='Selection',command=lambda: selection(array_num,duration=5))
     configmenu.add_command(accelerator='B',label='Bubble',command=lambda: bubble(array_num,duration=5))
     configmenu.add_command(accelerator='G',label='Gnome',command=lambda: gnome(array_num,duration=5))
     configmenu.add_command(accelerator='P',label='Pancake',command=lambda: pancake(array_num,duration=5))
